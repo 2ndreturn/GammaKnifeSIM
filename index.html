@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gamma Knife Challenge - Save the Patient!</title>
+    <title>Gamma Knife Challenge - Stereotactic Radiosurgery Console</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -25,20 +25,82 @@
         }
         .game-container { 
             position: relative;
-            max-width: 1240px; 
+            max-width: 1260px; 
             width: 100%;
             background: #1a1f2e; 
             border-radius: 20px; 
-            padding: 24px 28px; 
+            padding: 22px 26px; 
             border: 3px solid #00d4ff;
-            box-shadow: 0 0 30px rgba(0,212,255,0.3);
+            box-shadow: 0 0 32px rgba(0,212,255,0.28);
             transition: max-width 0.25s ease, padding 0.25s ease, border-radius 0.25s ease;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .title-block {
+            text-align: left;
+        }
+        h1 { 
+            color: #00d4ff; 
+            margin-bottom: 3px; 
+            font-size: 1.85em;
+            text-shadow: 0 0 20px rgba(0,212,255,0.45);
+            letter-spacing: 0.4px;
+        }
+        .subtitle { 
+            color: #94a3b8; 
+            font-size: 0.94em; 
+        }
+        .clinical-btn {
+            background: rgba(0, 212, 255, 0.12);
+            color: #00d4ff;
+            border: 1.5px solid rgba(0, 212, 255, 0.55);
+            padding: 9px 14px;
+            border-radius: 9px;
+            font-size: 0.8em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 0 0 auto;
+            min-width: auto;
+            box-shadow: none;
+        }
+        .clinical-btn:hover {
+            background: rgba(0, 212, 255, 0.22);
+            transform: translateY(-1px);
+            box-shadow: 0 0 14px rgba(0, 212, 255, 0.25);
+        }
+
+        .clinical-drawer {
+            display: none;
+            background: #0d1320;
+            border: 1.5px solid rgba(0, 212, 255, 0.4);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 14px;
+            color: #cbd5e1;
+            font-size: 0.88em;
+            line-height: 1.55;
+        }
+        .clinical-drawer.open {
+            display: block;
+        }
+        .clinical-drawer strong {
+            color: #00d4ff;
         }
 
         /* Landscape workspace layout for PC */
         .pc-workspace {
             display: grid;
-            grid-template-columns: minmax(420px, 1.25fr) minmax(320px, 1fr);
+            grid-template-columns: minmax(430px, 1.24fr) minmax(340px, 1fr);
             gap: 20px;
             align-items: start;
         }
@@ -59,6 +121,16 @@
             padding: 16px;
             border-radius: 24px;
         }
+        #modeMobile:checked + .game-container .top-bar,
+        .game-container.mobile-view .top-bar {
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+        }
+        #modeMobile:checked + .game-container .title-block,
+        .game-container.mobile-view .title-block {
+            text-align: center;
+        }
         #modeMobile:checked + .game-container .pc-workspace,
         .game-container.mobile-view .pc-workspace {
             grid-template-columns: 1fr;
@@ -66,17 +138,11 @@
         }
         #modeMobile:checked + .game-container h1,
         .game-container.mobile-view h1 {
-            font-size: 1.45em;
+            font-size: 1.42em;
         }
         #modeMobile:checked + .game-container .subtitle,
         .game-container.mobile-view .subtitle {
-            font-size: 0.92em;
-            margin-bottom: 12px;
-        }
-        #modeMobile:checked + .game-container .instructions,
-        .game-container.mobile-view .instructions {
-            padding: 14px;
-            font-size: 0.9em;
+            font-size: 0.88em;
         }
         #modeMobile:checked + .game-container .stats-grid,
         .game-container.mobile-view .stats-grid {
@@ -89,7 +155,7 @@
         }
         #modeMobile:checked + .game-container .btn-group,
         .game-container.mobile-view .btn-group {
-            flex-direction: column;
+            grid-template-columns: 1fr;
         }
         #modeMobile:checked + .game-container .btn-group button,
         .game-container.mobile-view .btn-group button {
@@ -149,13 +215,13 @@
             stroke-linejoin: round;
         }
         .cover-page h2 {
-            font-size: 2.1em;
+            font-size: 2.05em;
             color: #ffffff;
             margin-bottom: 12px;
             text-shadow: 0 0 20px rgba(0,212,255,0.4);
         }
         .cover-page p {
-            max-width: 520px;
+            max-width: 540px;
             color: #b8c4d9;
             font-size: 1em;
             line-height: 1.6;
@@ -181,9 +247,9 @@
             border-radius: 10px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 0.92em;
+            font-size: 0.9em;
             transition: all 0.25s;
-            box-shadow: 0 4px 15px rgba(0,212,255,0.4);
+            box-shadow: 0 4px 15px rgba(0,212,255,0.35);
             text-transform: uppercase;
             letter-spacing: 0.7px;
             user-select: none;
@@ -199,23 +265,10 @@
         .enter-btn:hover,
         button:hover { 
             transform: translateY(-2px); 
-            box-shadow: 0 6px 20px rgba(0,212,255,0.6);
+            box-shadow: 0 6px 20px rgba(0,212,255,0.55);
         }
         .enter-btn:active,
         button:active { transform: translateY(0); }
-        h1 { 
-            color: #00d4ff; 
-            text-align: center; 
-            margin-bottom: 6px; 
-            font-size: 2em;
-            text-shadow: 0 0 20px rgba(0,212,255,0.5);
-        }
-        .subtitle { 
-            text-align: center; 
-            color: #888; 
-            margin-bottom: 18px; 
-            font-size: 1em; 
-        }
         .game-area {
             position: relative;
             background: radial-gradient(circle at center, #0d1526 0%, #04070e 100%);
@@ -227,7 +280,7 @@
             display: block; 
             width: 100%;
             height: auto;
-            max-height: 450px;
+            max-height: 455px;
             cursor: grab;
             touch-action: none;
         }
@@ -237,14 +290,14 @@
         .controls-panel {
             background: #0f1420;
             border-radius: 12px;
-            padding: 16px 18px;
+            padding: 15px 18px;
             border: 2px solid #2a3f5f;
         }
         .step-badge {
             display: inline-block;
             padding: 4px 10px;
             border-radius: 6px;
-            font-size: 0.75em;
+            font-size: 0.74em;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.8px;
@@ -257,7 +310,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin: 6px 0 10px;
+            margin: 6px 0 8px;
             flex-wrap: wrap;
             gap: 12px;
         }
@@ -346,34 +399,58 @@
         .stat-card.good { border-color: #44ff44; background: #1a2a1a; }
         .stat-card.caution { border-color: #ffd700; background: #262214; }
         .stat-value { 
-            font-size: 1.35em; 
+            font-size: 1.32em; 
             font-weight: bold; 
             color: #00d4ff; 
-            text-shadow: 0 0 10px rgba(0,212,255,0.5);
+            text-shadow: 0 0 10px rgba(0,212,255,0.45);
         }
-        .stat-card.warning .stat-value { color: #ff4444; text-shadow: 0 0 10px rgba(255,68,68,0.5); }
-        .stat-card.good .stat-value { color: #44ff44; text-shadow: 0 0 10px rgba(68,255,68,0.5); }
-        .stat-card.caution .stat-value { color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.4); }
+        .stat-card.warning .stat-value { color: #ff4444; text-shadow: 0 0 10px rgba(255,68,68,0.45); }
+        .stat-card.good .stat-value { color: #44ff44; text-shadow: 0 0 10px rgba(68,255,68,0.45); }
+        .stat-card.caution .stat-value { color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.35); }
         .stat-label { 
-            font-size: 0.72em; 
-            color: #888; 
+            font-size: 0.7em; 
+            color: #94a3b8; 
             margin-top: 4px;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.7px;
+        }
+        .dosimetry-strip {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            background: #0d1320;
+            border: 1px solid #243652;
+            border-radius: 10px;
+            padding: 9px 12px;
+            font-size: 0.8em;
+        }
+        .dosimetry-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        .dosimetry-key {
+            color: #94a3b8;
+        }
+        .dosimetry-val {
+            color: #e2e8f0;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
         }
         .message-box {
             background: #0f1420;
             border-left: 5px solid #ffd700;
             padding: 13px 15px;
             border-radius: 0 10px 10px 0;
-            font-size: 0.92em;
+            font-size: 0.9em;
             line-height: 1.5;
         }
         .message-box.success { border-left-color: #44ff44; background: #0f2010; }
         .message-box.error { border-left-color: #ff4444; background: #200f0f; }
         .message-box.info { border-left-color: #00d4ff; background: #0f1420; }
         .health-bar {
-            height: 16px;
+            height: 15px;
             background: #333;
             border-radius: 8px;
             overflow: hidden;
@@ -384,15 +461,16 @@
             height: 100%;
             transition: width 0.2s;
         }
-        .tumor-fill { background: linear-gradient(90deg, #ff4444, #ff6666); box-shadow: 0 0 10px rgba(255,68,68,0.5); }
-        .brain-fill { background: linear-gradient(90deg, #44ff44, #66ff66); box-shadow: 0 0 10px rgba(68,255,68,0.5); }
+        .tumor-fill { background: linear-gradient(90deg, #f59e0b, #ef4444); box-shadow: 0 0 10px rgba(239,68,68,0.45); }
+        .brain-fill { background: linear-gradient(90deg, #22c55e, #4ade80); box-shadow: 0 0 10px rgba(74,222,128,0.45); }
         .legend {
             display: flex;
             justify-content: center;
             gap: 14px;
             margin-top: 10px;
             flex-wrap: wrap;
-            font-size: 0.82em;
+            font-size: 0.8em;
+            color: #cbd5e1;
         }
         .legend-item {
             display: flex;
@@ -400,8 +478,8 @@
             gap: 6px;
         }
         .legend-color {
-            width: 14px;
-            height: 14px;
+            width: 13px;
+            height: 13px;
             border-radius: 50%;
             border: 2px solid #fff;
         }
@@ -411,7 +489,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.92);
             display: none;
             flex-direction: column;
             justify-content: center;
@@ -420,49 +498,19 @@
             padding: 28px;
             z-index: 100;
         }
-        .win-screen { background: rgba(0,20,0,0.95); }
-        .lose-screen { background: rgba(20,0,0,0.95); }
+        .win-screen { background: rgba(0,22,8,0.95); }
+        .lose-screen { background: rgba(24,0,0,0.95); }
         .win-screen h2, .lose-screen h2 {
-            font-size: 2.1em;
-            margin-bottom: 12px;
+            font-size: 2em;
+            margin-bottom: 10px;
         }
-        .win-screen h2 { color: #44ff44; text-shadow: 0 0 30px rgba(68,255,68,0.8); }
-        .lose-screen h2 { color: #ff4444; text-shadow: 0 0 30px rgba(255,68,68,0.8); }
+        .win-screen h2 { color: #44ff44; text-shadow: 0 0 28px rgba(68,255,68,0.75); }
+        .lose-screen h2 { color: #ff4444; text-shadow: 0 0 28px rgba(255,68,68,0.75); }
         .score-display {
-            font-size: 1.1em;
+            font-size: 1.06em;
             color: #ffd700;
             margin: 10px 0;
             line-height: 1.65;
-        }
-        .instructions {
-            background: #1a2332;
-            border-radius: 10px;
-            padding: 14px 18px;
-            margin-bottom: 16px;
-            border: 2px solid #ffd700;
-            font-size: 0.92em;
-        }
-        .instructions h3 {
-            color: #ffd700;
-            margin-top: 0;
-            margin-bottom: 8px;
-            font-size: 1.05em;
-        }
-        .instructions ol {
-            padding-left: 20px;
-            line-height: 1.55;
-        }
-        .instructions li {
-            margin: 4px 0;
-        }
-        .physics-tip {
-            background: #0f1420;
-            border-left: 4px solid #00d4ff;
-            padding: 10px 14px;
-            margin: 10px 0 0;
-            font-style: italic;
-            color: #aaa;
-            font-size: 0.9em;
         }
         @media (max-width: 820px) {
             body { justify-content: flex-start; }
@@ -476,7 +524,7 @@
         @media (max-width: 600px) {
             body { padding: 10px; }
             .game-container { padding: 14px; border-radius: 16px; }
-            h1 { font-size: 1.45em; }
+            h1 { font-size: 1.42em; }
             .cover-page h2 { font-size: 1.6em; }
             .btn-group { grid-template-columns: 1fr; }
             .enter-btn,
@@ -490,7 +538,7 @@
 
     <div class="game-container" id="gameContainer">
         <div class="cover-page" id="coverPage">
-            <div class="cover-badge">Neurosurgery Simulation</div>
+            <div class="cover-badge">Stereotactic Radiosurgery Console</div>
             <div class="doc-icon-wrap" aria-hidden="true">
                 <svg viewBox="0 0 48 48">
                     <path d="M12 8v10a12 12 0 0 0 24 0V8" />
@@ -500,10 +548,11 @@
                     <circle cx="40" cy="26" r="3.5" />
                 </svg>
             </div>
-            <h2>Welcome to Your First Surgery, Doctor</h2>
+            <h2>Gamma Knife Radiosurgery Simulation</h2>
             <p>
-                Each round spawns the tumor and your laser aim in random spots. Drag/tap the laser onto the tumor,
-                choose your laser count (1–201), hold <strong>FIRE</strong> as long as you judge right, then click <strong>Done</strong>.
+                Gamma Knife radiosurgery doesn't slice or vaporize a tumor on the spot—it delivers focused radiation to
+                <strong>halt tumor expansion</strong> while sparing healthy brain tissue. Align your beams onto the target
+                lesion, select your beam count (1–201), hold <strong>Fire</strong> as long as you judge necessary, and click <strong>Done</strong>.
             </p>
             <div class="enter-options">
                 <label for="modeMobile" class="enter-btn" id="enterMobileBtn" tabindex="0">📱 Enter (Mobile)</label>
@@ -511,29 +560,26 @@
             </div>
         </div>
 
-        <h1>⚛️ GAMMA KNIFE CHALLENGE</h1>
-        <div class="subtitle">Move the lasers onto the tumor, choose laser count, hold fire, and click Done</div>
-
-        <div class="instructions">
-            <h3>🎮 How to Play</h3>
-            <ol>
-                <li><strong>1. Move Lasers to Tumor:</strong> The tumor and your laser aim start in random spots. Drag or tap/click on the brain to move the laser convergence reticle onto the tumor, then click <strong>Lock Aim &amp; Pick Lasers</strong>.</li>
-                <li><strong>2. Pick Lasers (1–201):</strong> Fewer lasers take longer and cook the brain much faster if you keep firing too long.</li>
-                <li><strong>3. Hold FIRE &amp; Click Done:</strong> Hold FIRE for as long as you think it takes. Click <strong>Done</strong> when you want to finish and see if you won—if you over-fire and drain brain health, <strong>his brain is cooked</strong>!</li>
-            </ol>
-            <div class="physics-tip">
-                💡 <strong>Real Physics:</strong> The Gamma Knife uses 201 beams so treatment takes only minutes. With fewer beams, you'd need to fire much longer, giving healthy tissue time to absorb damaging radiation. It's not that fewer beams can't kill the tumor—they just take longer, and that hurts the patient!
+        <div class="top-bar">
+            <div class="title-block">
+                <h1>⚛️ GAMMA KNIFE RADIOSURGERY</h1>
+                <div class="subtitle">Prevent lesion expansion &amp; protect healthy brain tissue — hold Fire, then click Done</div>
             </div>
+            <button type="button" class="clinical-btn" id="clinicalToggleBtn" aria-expanded="false">🩺 Clinical Note</button>
+        </div>
+
+        <div class="clinical-drawer" id="clinicalDrawer">
+            <strong>How Radiosurgery Works:</strong> Rather than surgically cutting or instantly destroying a tumor, stereotactic radiosurgery converges multiple narrow radiation beams at a precise 3D isocenter to halt cellular growth and prevent the lesion from expanding or invading surrounding brain tissue. Fewer beams require longer exposure times to achieve control, increasing radiation dose to adjacent healthy parenchyma.
         </div>
 
         <div class="pc-workspace">
             <div class="pc-left-col">
                 <div class="game-area">
-                    <svg id="surgeryScene" viewBox="0 0 800 500" width="800" height="500" role="img" aria-label="Gamma Knife Surgery View">
+                    <svg id="surgeryScene" viewBox="0 0 800 500" width="800" height="500" role="img" aria-label="Gamma Knife Stereotactic Target View">
                         <defs>
                             <radialGradient id="tumorGlow" cx="50%" cy="50%" r="50%">
-                                <stop offset="0%" stop-color="#ff3b3b" stop-opacity="0.95" />
-                                <stop offset="55%" stop-color="#ff3b3b" stop-opacity="0.45" />
+                                <stop offset="0%" stop-color="#ff3b3b" stop-opacity="0.92" />
+                                <stop offset="58%" stop-color="#f59e0b" stop-opacity="0.38" />
                                 <stop offset="100%" stop-color="#ff3b3b" stop-opacity="0" />
                             </radialGradient>
                             <radialGradient id="brainGrad" cx="45%" cy="40%" r="60%">
@@ -542,8 +588,8 @@
                             </radialGradient>
                         </defs>
 
-                        <text id="svgPhaseBanner" x="400" y="26" fill="#ffd700" font-size="14" font-weight="bold" text-anchor="middle">STEP 1: Drag or tap/click to move your lasers onto the tumor</text>
-                        <text id="svgFiringHud" x="400" y="52" fill="#ff4444" font-size="17" font-weight="bold" text-anchor="middle" opacity="0">⚡ FIRING — 0.0s (0.0 Gy) ⚡</text>
+                        <text id="svgPhaseBanner" x="400" y="26" fill="#ffd700" font-size="14" font-weight="bold" text-anchor="middle">STEP 1: Drag or tap/click to align the isocenter with the lesion</text>
+                        <text id="svgFiringHud" x="400" y="52" fill="#ff4444" font-size="16.5" font-weight="bold" text-anchor="middle" opacity="0">⚡ DELIVERING DOSE — 0.0s (0.0 Gy) ⚡</text>
 
                         <!-- Patient shoulders & neck -->
                         <ellipse cx="400" cy="395" rx="100" ry="56" fill="#2a3f5f" />
@@ -575,14 +621,14 @@
                         <!-- Beams & Cobalt-60 Sources layer -->
                         <g id="beamsLayer"></g>
 
-                        <!-- Tumor -->
+                        <!-- Target Lesion -->
                         <g id="tumorGroup">
                             <circle id="tumorHalo" cx="416" cy="244" r="28" fill="url(#tumorGlow)" />
-                            <circle id="tumorCore" cx="416" cy="244" r="15" fill="#ff1a1a" stroke="#ffffff" stroke-width="1.5" />
-                            <text id="tumorLabel" x="416" y="247.5" fill="#ffffff" font-size="8.5" font-weight="bold" text-anchor="middle">TUMOR</text>
+                            <circle id="tumorCore" cx="416" cy="244" r="15" fill="#e11d48" stroke="#ffffff" stroke-width="1.5" />
+                            <text id="tumorLabel" x="416" y="247" fill="#ffffff" font-size="7.5" font-weight="bold" text-anchor="middle">LESION</text>
                         </g>
 
-                        <!-- Movable Laser Aim Reticle -->
+                        <!-- Movable Isocenter Reticle -->
                         <g id="aimReticle" transform="translate(380, 265)">
                             <circle cx="0" cy="0" r="21" fill="rgba(0, 212, 255, 0.12)" stroke="#00d4ff" stroke-width="2.2" stroke-dasharray="5 3" />
                             <line x1="-27" y1="0" x2="-13" y2="0" stroke="#00d4ff" stroke-width="2.2" />
@@ -594,22 +640,21 @@
 
                         <g id="particlesLayer"></g>
 
-                        <text x="400" y="482" fill="#888" font-size="14" text-anchor="middle">Patient Head (Cross-section)</text>
+                        <text x="400" y="482" fill="#888" font-size="14" text-anchor="middle">Cranial Cross-Section &amp; Stereotactic Isocenter</text>
                     </svg>
 
                     <div class="win-screen" id="winScreen">
-                        <h2>🎉 YOU WON!</h2>
+                        <h2>🎉 EXPANSION PREVENTED!</h2>
                         <div class="score-display" id="winScore"></div>
                         <p style="font-size: 1.05em; margin: 10px 0;" id="winFeedback"></p>
-                        <p style="color: #9bb0c9; margin: 8px 0; max-width: 480px; font-size: 0.92em;">You aimed onto the tumor, destroyed it to 0%, clicked Done in time, and kept the patient's brain alive.</p>
-                        <button type="button" id="playAgainBtn" style="margin-top: 12px;">Play Again</button>
+                        <p style="color: #9bb0c9; margin: 8px 0; max-width: 490px; font-size: 0.92em;">Lesion growth control achieved—prevented the tumor from expanding further while preserving healthy brain tissue.</p>
+                        <button type="button" id="playAgainBtn" style="margin-top: 12px;">New Patient Case</button>
                     </div>
                     <div class="lose-screen" id="loseScreen">
-                        <h2 id="loseTitle">💀 YOU LOST</h2>
+                        <h2 id="loseTitle">💀 TREATMENT FAILED</h2>
                         <div class="score-display" id="loseReason"></div>
                         <p style="font-size: 1.05em; margin: 10px 0; color: #ff8888; font-weight: bold;" id="loseSummary"></p>
-                        <p style="color: #9bb0c9; margin: 8px 0; max-width: 480px; font-size: 0.92em;">Remember: align the lasers with the tumor, pick your laser count, hold FIRE as long as needed, and click Done before cooking the brain.</p>
-                        <button type="button" id="tryAgainBtn" style="margin-top: 12px;">Try Again</button>
+                        <button type="button" id="tryAgainBtn" style="margin-top: 12px;">Try Case Again</button>
                     </div>
                 </div>
 
@@ -620,14 +665,14 @@
                     </div>
                     <div class="legend-item">
                         <div class="legend-color" style="background: #00d4ff;"></div>
-                        <span>Laser Aim / Beams</span>
+                        <span>Isocenter / Beams</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color" style="background: #ff4444;"></div>
-                        <span>Tumor</span>
+                        <div class="legend-color" style="background: #e11d48;"></div>
+                        <span>Target Lesion</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color" style="background: #44ff44;"></div>
+                        <div class="legend-color" style="background: #4ade80;"></div>
                         <span>Healthy Brain</span>
                     </div>
                 </div>
@@ -637,41 +682,52 @@
                 <div class="stats-grid">
                     <div class="stat-card" id="tumorCard">
                         <div class="stat-value" id="tumorHealthText">100%</div>
-                        <div class="stat-label">Tumor Health</div>
+                        <div class="stat-label">Expansion Risk</div>
                         <div class="health-bar">
                             <div class="health-fill tumor-fill" id="tumorBar" style="width: 100%;"></div>
                         </div>
                     </div>
                     <div class="stat-card" id="brainCard">
                         <div class="stat-value" id="brainHealthText">100%</div>
-                        <div class="stat-label">Brain Health</div>
+                        <div class="stat-label">Healthy Brain</div>
                         <div class="health-bar">
                             <div class="health-fill brain-fill" id="brainBar" style="width: 100%;"></div>
                         </div>
                     </div>
                     <div class="stat-card" id="statusCard">
-                        <div class="stat-value" id="performanceRating">AIM LASERS</div>
-                        <div class="stat-label">Status</div>
+                        <div class="stat-value" id="performanceRating">AIM TARGET</div>
+                        <div class="stat-label">Console Status</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="timeElapsed">0.0s</div>
-                        <div class="stat-label">Fire Time</div>
+                        <div class="stat-label">Exposure Time</div>
+                    </div>
+                </div>
+
+                <div class="dosimetry-strip">
+                    <div class="dosimetry-item">
+                        <span class="dosimetry-key">Target Dose:</span>
+                        <span class="dosimetry-val" id="doseReadout">0.0 Gy</span>
+                    </div>
+                    <div class="dosimetry-item">
+                        <span class="dosimetry-key">Isocenter Offset:</span>
+                        <span class="dosimetry-val" id="offsetReadout">0 px</span>
                     </div>
                 </div>
 
                 <div class="controls-panel">
-                    <div class="step-badge" id="stepBadge">Step 1 — Move Lasers Onto Random Tumor Spot</div>
+                    <div class="step-badge" id="stepBadge">Step 1 — Align Isocenter With Lesion</div>
 
                     <div class="control-row">
                         <div class="control-group">
-                            <label class="slider-label">Laser Count <span class="value-display" id="beamValue">1</span></label>
+                            <label class="slider-label">Beams Selected <span class="value-display" id="beamValue">1</span></label>
                             <input type="range" id="beamSlider" min="1" max="201" value="1" disabled>
-                            <small style="color: #888;">Fewer lasers = slower kill &amp; cooks brain much faster if held too long</small>
+                            <small style="color: #888;">Fewer beams = slower control &amp; higher healthy-tissue dose over time</small>
                         </div>
                     </div>
 
                     <div class="btn-group">
-                        <button type="button" id="lockAimBtn">🎯 Lock Aim</button>
+                        <button type="button" id="lockAimBtn">🎯 Lock Isocenter</button>
                         <button type="button" id="fireBtn" disabled>🔥 Hold Fire</button>
                         <button type="button" class="done-btn" id="doneBtn" disabled>✅ Done</button>
                         <button type="button" class="danger" id="resetBtn">🔄 Reset</button>
@@ -679,7 +735,7 @@
                 </div>
 
                 <div class="message-box info" id="messageBox">
-                    <strong>Step 1:</strong> Drag or tap/click on the brain to move your laser aim onto the tumor, then click <strong>Lock Aim</strong>.
+                    <strong>Step 1:</strong> Drag or tap/click on the cranial view to place the laser isocenter over the lesion, then click <strong>Lock Isocenter</strong>.
                 </div>
             </div>
         </div>
@@ -694,6 +750,9 @@
             const enterPcBtn = document.getElementById('enterPcBtn');
             const modeMobile = document.getElementById('modeMobile');
             const modePc = document.getElementById('modePc');
+
+            const clinicalToggleBtn = document.getElementById('clinicalToggleBtn');
+            const clinicalDrawer = document.getElementById('clinicalDrawer');
 
             const surgeryScene = document.getElementById('surgeryScene');
             const lockAimBtn = document.getElementById('lockAimBtn');
@@ -714,6 +773,8 @@
             const svgFiringHud = document.getElementById('svgFiringHud');
             const stepBadge = document.getElementById('stepBadge');
 
+            const MIN_WIN_BRAIN = 90;
+
             let stage = 'aim';
             let isDraggingAim = false;
 
@@ -730,13 +791,21 @@
 
             let beamCount = 1;
             let isFiring = false;
-            let tumorHealth = 100;
+            let expansionRisk = 100;
             let brainHealth = 100;
             let animationId = null;
             let fireTime = 0;
+            let deliveredDoseGy = 0;
             let particles = [];
 
             const OPTIMAL_BEAMS = 201;
+
+            if (clinicalToggleBtn && clinicalDrawer) {
+                clinicalToggleBtn.addEventListener('click', () => {
+                    const isOpen = clinicalDrawer.classList.toggle('open');
+                    clinicalToggleBtn.setAttribute('aria-expanded', String(isOpen));
+                });
+            }
 
             function randomPointInBrain(minSeparationFromX, minSeparationFromY) {
                 for (let attempt = 0; attempt < 25; attempt++) {
@@ -779,8 +848,8 @@
                 } else {
                     if (modePc) modePc.checked = true;
                     gameContainer.classList.remove('mobile-view');
-                    gameContainer.style.maxWidth = '1240px';
-                    gameContainer.style.padding = '24px 28px';
+                    gameContainer.style.maxWidth = '1260px';
+                    gameContainer.style.padding = '22px 26px';
                 }
                 if (coverPage) {
                     coverPage.classList.add('hidden');
@@ -920,30 +989,37 @@
                 fireBtn.textContent = '🔥 Hold Fire';
                 fireBtn.style.background = 'linear-gradient(135deg, #00d4ff 0%, #0099cc 100%)';
                 fireBtn.style.color = '#000';
+                stage = 'ended';
 
-                if (brainHealth <= 0) {
+                const finalBrain = Math.max(0, brainHealth);
+                const finalRisk = Math.max(0, expansionRisk);
+
+                if (finalBrain <= 0) {
                     brainHealth = 0;
-                    stage = 'ended';
                     loseGame(
                         'His brain is cooked.',
-                        tumorHealth <= 0
-                            ? 'You destroyed the tumor, but kept lasering and cooked the brain!'
-                            : 'You fired too long with ' + beamCount + ' laser' + (beamCount === 1 ? '' : 's') + ' and cooked the brain!'
+                        'Healthy brain tissue was overwhelmed after ' + fireTime.toFixed(1) + 's of exposure with ' + beamCount + ' beam' + (beamCount === 1 ? '' : 's') + '.'
                     );
                     return;
                 }
 
-                if (tumorHealth <= 0) {
-                    tumorHealth = 0;
-                    stage = 'ended';
+                if (finalBrain < MIN_WIN_BRAIN) {
+                    loseGame(
+                        'You lost because healthy brain health is under 90% (' + finalBrain.toFixed(0) + '%).',
+                        'Excessive exposure to surrounding tissue dropped healthy brain health below 90%.'
+                    );
+                    return;
+                }
+
+                if (finalRisk <= 0) {
+                    expansionRisk = 0;
                     winGame();
                     return;
                 }
 
-                stage = 'ended';
                 loseGame(
-                    'You clicked Done with ' + tumorHealth.toFixed(0) + '% tumor remaining!',
-                    'Hold FIRE longer until the tumor hits 0%, then click Done before his brain gets cooked.'
+                    'You clicked Done with ' + finalRisk.toFixed(0) + '% expansion risk still active!',
+                    'Hold Fire longer until lesion expansion risk reaches 0%, then click Done.'
                 );
             }
 
@@ -956,41 +1032,21 @@
                 fireTime += dt;
 
                 const aimFactor = getAimAccuracyFactor();
-                const tumorDamageRate = tumorHealth > 0 ? (beamCount / OPTIMAL_BEAMS) * 26 * aimFactor : 0;
+                const controlRate = expansionRisk > 0 ? (beamCount / OPTIMAL_BEAMS) * 28 * aimFactor : 0;
+                deliveredDoseGy += (beamCount / OPTIMAL_BEAMS) * 14 * dt;
 
-                const laserScarcity = Math.pow(OPTIMAL_BEAMS / Math.max(1, beamCount), 1.45);
-                const postTumorExtraCook = tumorHealth <= 0 ? 1.9 : 1.0;
-                const brainCookRate = laserScarcity * 1.15 * postTumorExtraCook;
+                const beamScarcity = Math.pow(OPTIMAL_BEAMS / Math.max(1, beamCount), 1.45);
+                const postControlExtraLoad = expansionRisk <= 0 ? 1.9 : 1.0;
+                const brainLoadRate = beamScarcity * 1.15 * postControlExtraLoad;
 
-                tumorHealth = Math.max(0, tumorHealth - tumorDamageRate * dt);
-                brainHealth = Math.max(0, brainHealth - brainCookRate * dt);
+                expansionRisk = Math.max(0, expansionRisk - controlRate * dt);
+                brainHealth = Math.max(0, brainHealth - brainLoadRate * dt);
 
                 if (Math.random() < 0.45) {
-                    createParticle(aimX, aimY, tumorHealth > 0 ? '#ff4444' : '#ff9900');
+                    createParticle(aimX, aimY, expansionRisk > 0 ? '#38bdf8' : '#f59e0b');
                 }
 
                 updateUI();
-
-                if (brainHealth <= 0) {
-                    brainHealth = 0;
-                    isFiring = false;
-                    stage = 'ended';
-                    fireBtn.disabled = true;
-                    doneBtn.disabled = true;
-                    fireBtn.textContent = '🔥 Hold Fire';
-                    fireBtn.style.background = 'linear-gradient(135deg, #00d4ff 0%, #0099cc 100%)';
-                    fireBtn.style.color = '#000';
-                    if (animationId) cancelAnimationFrame(animationId);
-
-                    loseGame(
-                        'His brain is cooked.',
-                        tumorHealth <= 0
-                            ? 'You killed the tumor, but kept lasering and cooked his brain!'
-                            : 'You held fire too long with ' + beamCount + ' laser' + (beamCount === 1 ? '' : 's') + ' and cooked his brain!'
-                    );
-                    return;
-                }
-
                 renderScene();
                 animationId = requestAnimationFrame(gameLoop);
             }
@@ -1048,7 +1104,7 @@
                     line.setAttribute('y1', sy);
                     line.setAttribute('x2', aimX.toFixed(1));
                     line.setAttribute('y2', aimY.toFixed(1));
-                    line.setAttribute('stroke', tumorHealth <= 0 && isFiring ? '#ff8800' : '#00d4ff');
+                    line.setAttribute('stroke', expansionRisk <= 0 && isFiring ? '#f59e0b' : '#00d4ff');
                     line.setAttribute('stroke-width', strokeWidth);
                     line.setAttribute('stroke-opacity', strokeOpacity);
                     beamsLayer.appendChild(line);
@@ -1068,30 +1124,31 @@
                 tumorCore.setAttribute('cx', tumorX.toFixed(1));
                 tumorCore.setAttribute('cy', tumorY.toFixed(1));
                 tumorLabel.setAttribute('x', tumorX.toFixed(1));
-                tumorLabel.setAttribute('y', (tumorY + 3.5).toFixed(1));
+                tumorLabel.setAttribute('y', (tumorY + 2.5).toFixed(1));
 
                 aimReticle.setAttribute('transform', `translate(${aimX.toFixed(1)}, ${aimY.toFixed(1)})`);
 
-                const scale = Math.max(0, tumorHealth / 100);
-                const coreR = scale > 0 ? (5 + scale * 10) : 0;
-                const haloR = scale > 0 ? (coreR + 12) : 0;
+                // Lesion stabilizes and stops expanding rather than vanishing completely
+                const riskFactor = Math.max(0, expansionRisk / 100);
+                const coreR = 7.5 + riskFactor * 8;
+                const haloR = coreR + 6 + riskFactor * 6;
 
                 tumorCore.setAttribute('r', coreR.toFixed(1));
+                tumorCore.setAttribute('fill', expansionRisk <= 0 ? '#eab308' : '#e11d48');
                 tumorHalo.setAttribute('r', haloR.toFixed(1));
-                tumorLabel.setAttribute('opacity', scale > 0.2 ? '1' : '0');
+                tumorLabel.textContent = expansionRisk <= 0 ? 'STABILIZED' : 'LESION';
 
                 if (stage === 'aim') {
-                    svgPhaseBanner.textContent = 'STEP 1: Drag or tap/click to move your lasers onto the tumor';
+                    svgPhaseBanner.textContent = 'STEP 1: Drag or tap/click to align the isocenter with the lesion';
                 } else if (stage === 'firing') {
                     svgPhaseBanner.textContent =
-                        'STEP 2/3: ' + beamCount + (beamCount === 1 ? ' Laser' : ' Lasers') + ' — Hold FIRE as long as needed, then click Done';
+                        'STEP 2/3: ' + beamCount + (beamCount === 1 ? ' Beam' : ' Beams') + ' — Hold Fire to halt expansion, then click Done';
                 } else {
-                    svgPhaseBanner.textContent = 'ROUND OVER — Press Reset or Play Again for a new random spot';
+                    svgPhaseBanner.textContent = 'SESSION COMPLETE — Press Reset or New Patient Case for another lesion';
                 }
 
                 if (isFiring) {
-                    const currentDose = (fireTime * (beamCount / OPTIMAL_BEAMS) * 26 * getAimAccuracyFactor()).toFixed(1);
-                    svgFiringHud.textContent = `⚡ FIRING — ${fireTime.toFixed(1)}s (${currentDose} Gy) ⚡`;
+                    svgFiringHud.textContent = `⚡ DELIVERING DOSE — ${fireTime.toFixed(1)}s (${deliveredDoseGy.toFixed(1)} Gy) ⚡`;
                     svgFiringHud.setAttribute('opacity', '1');
                 } else {
                     svgFiringHud.setAttribute('opacity', '0');
@@ -1102,15 +1159,17 @@
             }
 
             function updateUI() {
-                const tumorPct = Math.max(0, tumorHealth);
+                const riskPct = Math.max(0, expansionRisk);
                 const brainPct = Math.max(0, brainHealth);
                 const distFromTumor = Math.round(Math.hypot(aimX - tumorX, aimY - tumorY));
 
-                document.getElementById('tumorHealthText').textContent = tumorPct.toFixed(0) + '%';
+                document.getElementById('tumorHealthText').textContent = riskPct.toFixed(0) + '%';
                 document.getElementById('brainHealthText').textContent = brainPct.toFixed(0) + '%';
-                document.getElementById('tumorBar').style.width = tumorPct + '%';
+                document.getElementById('tumorBar').style.width = riskPct + '%';
                 document.getElementById('brainBar').style.width = brainPct + '%';
                 document.getElementById('timeElapsed').textContent = fireTime.toFixed(1) + 's';
+                document.getElementById('doseReadout').textContent = deliveredDoseGy.toFixed(1) + ' Gy';
+                document.getElementById('offsetReadout').textContent = distFromTumor + ' px';
 
                 const tumorCard = document.getElementById('tumorCard');
                 const brainCard = document.getElementById('brainCard');
@@ -1118,66 +1177,64 @@
                 const perfEl = document.getElementById('performanceRating');
                 const msgBox = document.getElementById('messageBox');
 
-                tumorCard.classList.toggle('good', tumorPct === 0);
-                brainCard.classList.toggle('warning', brainPct < 50);
+                tumorCard.classList.remove('good');
+                brainCard.classList.remove('warning');
 
                 if (stage === 'aim') {
-                    stepBadge.textContent = 'Step 1 — Move Lasers Onto Random Tumor Spot';
-                    perfEl.textContent = distFromTumor <= 15 ? 'ALIGNED' : 'MOVE AIM';
-                    statusCard.className = 'stat-card ' + (distFromTumor <= 15 ? 'good' : 'caution');
+                    stepBadge.textContent = 'Step 1 — Align Isocenter With Lesion';
+                    perfEl.textContent = 'AIM TARGET';
+                    statusCard.className = 'stat-card caution';
                     msgBox.className = 'message-box info';
-                    msgBox.innerHTML = '<strong>Step 1 (Aim):</strong> Drag or tap/click on the brain to move your laser aim onto the tumor (distance: <strong>' + distFromTumor + 'px</strong>), then click <strong>Lock Aim</strong>.';
+                    msgBox.innerHTML = '<strong>Step 1 (Isocenter Alignment):</strong> Drag or tap/click on the cranial view to position the laser target over the lesion (offset: <strong>' + distFromTumor + 'px</strong>), then click <strong>Lock Isocenter</strong>.';
                     return;
                 }
 
-                stepBadge.textContent = stage === 'firing'
-                    ? 'Step 2 & 3 — ' + beamCount + (beamCount === 1 ? ' Laser' : ' Lasers') + ' | Hold Fire & Click Done'
-                    : 'Round Complete';
+                if (stage === 'firing') {
+                    stepBadge.textContent = 'Step 2 & 3 — ' + beamCount + (beamCount === 1 ? ' Beam' : ' Beams') + ' | Hold Fire & Click Done';
+                    if (isFiring) {
+                        perfEl.textContent = 'IRRADIATING';
+                        statusCard.className = 'stat-card good';
+                        msgBox.className = 'message-box info';
+                        msgBox.innerHTML = '<strong>⚡ Delivering focused dose with ' + beamCount + ' beam' + (beamCount === 1 ? '' : 's') + ':</strong> Hold for as long as you judge necessary to halt lesion expansion, then click <strong>Done</strong>.';
+                    } else {
+                        perfEl.textContent = beamCount + ' BEAM' + (beamCount === 1 ? '' : 'S');
+                        statusCard.className = 'stat-card';
+                        msgBox.className = 'message-box info';
+                        msgBox.innerHTML = '<strong>Ready:</strong> ' + beamCount + ' beam' + (beamCount === 1 ? '' : 's') + ' configured. Hold <strong>Fire</strong> as long as you think is needed to stop expansion, then click <strong>Done</strong>.';
+                    }
+                    return;
+                }
 
-                if (brainPct <= 0) {
-                    perfEl.textContent = 'BRAIN COOKED';
+                stepBadge.textContent = 'Session Complete';
+                if (brainPct < MIN_WIN_BRAIN) {
+                    perfEl.textContent = brainPct <= 0 ? 'BRAIN COOKED' : 'UNDER 90%';
                     statusCard.className = 'stat-card warning';
+                    brainCard.classList.add('warning');
                     msgBox.className = 'message-box error';
-                    msgBox.innerHTML = '<strong>💀 His brain is cooked.</strong> Click <strong>Done</strong> or <strong>Reset</strong> to view/try again.';
-                } else if (tumorPct <= 0 && isFiring) {
-                    perfEl.textContent = 'CLICK DONE!';
-                    statusCard.className = 'stat-card caution';
-                    msgBox.className = 'message-box error';
-                    msgBox.innerHTML = '<strong>🎯 Tumor is at 0%!</strong> Stop firing and click <strong>Done</strong> before holding too long cooks his brain!';
-                } else if (tumorPct <= 0 && !isFiring) {
-                    perfEl.textContent = 'READY TO FINISH';
+                    msgBox.innerHTML = brainPct <= 0
+                        ? '<strong>💀 His brain is cooked.</strong> Healthy brain tissue was overwhelmed.'
+                        : '<strong>💀 You lost because healthy brain health is under 90% (' + brainPct.toFixed(0) + '%).</strong>';
+                } else if (riskPct <= 0) {
+                    perfEl.textContent = 'CONTROLLED';
                     statusCard.className = 'stat-card good';
+                    tumorCard.classList.add('good');
                     msgBox.className = 'message-box success';
-                    msgBox.innerHTML = '<strong>✅ Tumor is at 0%!</strong> Click <strong>Done</strong> now to claim your win before brain health drops.';
-                } else if (brainPct < 35) {
-                    perfEl.textContent = 'COOKING BRAIN';
+                    msgBox.innerHTML = '<strong>🎉 Expansion Prevented!</strong> Lesion growth halted with ' + brainPct.toFixed(0) + '% healthy brain tissue preserved.';
+                } else {
+                    perfEl.textContent = 'UNCONTROLLED';
                     statusCard.className = 'stat-card warning';
                     msgBox.className = 'message-box error';
-                    msgBox.innerHTML = '<strong>🔥 Brain Cooking Fast!</strong> Brain health is down to ' + brainPct.toFixed(0) + '%!';
-                } else if (isFiring) {
-                    perfEl.textContent = 'FIRING (' + beamCount + ')';
-                    statusCard.className = 'stat-card good';
-                    msgBox.className = 'message-box info';
-                    msgBox.innerHTML = '<strong>⚡ Firing ' + beamCount + ' laser' + (beamCount === 1 ? '' : 's') + ':</strong> Hold until you think the tumor is done, then release and click <strong>Done</strong>.';
-                } else {
-                    perfEl.textContent = beamCount + ' LASER' + (beamCount === 1 ? '' : 'S');
-                    statusCard.className = 'stat-card';
-                    msgBox.className = 'message-box info';
-                    msgBox.innerHTML = '<strong>Ready:</strong> ' + beamCount + ' laser' + (beamCount === 1 ? '' : 's') + ' selected. Hold <strong>Fire</strong> as long as you judge necessary, then click <strong>Done</strong>.';
+                    msgBox.innerHTML = '<strong>❌ Expansion Not Halted:</strong> ' + riskPct.toFixed(0) + '% expansion risk remained when you clicked <strong>Done</strong>.';
                 }
             }
 
             function winGame() {
                 updateUI();
-                let verdict = 'Nice call clicking Done right when the tumor was finished!';
-                if (brainHealth >= 80) verdict = 'Clean surgical judgment—strong brain health preserved!';
-                else if (brainHealth < 35) verdict = 'Cutting it close—just barely finished before cooking the brain!';
-
                 document.getElementById('winScore').innerHTML =
-                    'Lasers Used: ' + beamCount + '<br>' +
-                    'Hold Time: ' + fireTime.toFixed(1) + 's<br>' +
-                    'Brain Health Left: ' + brainHealth.toFixed(0) + '%';
-                document.getElementById('winFeedback').textContent = verdict;
+                    'Beams Used: ' + beamCount + '<br>' +
+                    'Exposure Time: ' + fireTime.toFixed(1) + 's (' + deliveredDoseGy.toFixed(1) + ' Gy)<br>' +
+                    'Healthy Brain Preserved: ' + brainHealth.toFixed(0) + '%';
+                document.getElementById('winFeedback').textContent = 'You halted lesion expansion and prevented further spread without over-treating healthy tissue.';
                 document.getElementById('winScreen').style.display = 'flex';
                 renderScene();
             }
@@ -1186,7 +1243,7 @@
                 updateUI();
                 document.getElementById('loseReason').textContent = reason;
                 document.getElementById('loseSummary').textContent =
-                    summary + ' (Lasers: ' + beamCount + ' | Hold: ' + fireTime.toFixed(1) + 's | Tumor: ' + Math.max(0, tumorHealth).toFixed(0) + '% | Brain: ' + Math.max(0, brainHealth).toFixed(0) + '%)';
+                    summary + ' (Beams: ' + beamCount + ' | Time: ' + fireTime.toFixed(1) + 's | Dose: ' + deliveredDoseGy.toFixed(1) + ' Gy | Expansion Risk: ' + Math.max(0, expansionRisk).toFixed(0) + '% | Healthy Brain: ' + Math.max(0, brainHealth).toFixed(0) + '%)';
                 document.getElementById('loseScreen').style.display = 'flex';
                 renderScene();
             }
@@ -1206,9 +1263,10 @@
                 doneBtn.disabled = true;
 
                 isFiring = false;
-                tumorHealth = 100;
+                expansionRisk = 100;
                 brainHealth = 100;
                 fireTime = 0;
+                deliveredDoseGy = 0;
                 particles = [];
 
                 document.getElementById('winScreen').style.display = 'none';
