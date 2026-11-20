@@ -4,9 +4,7 @@ An interactive neurosurgery simulation where you use converging gamma beams to d
 
 ## Live Demo & Mobile Play
 - **GitHub Pages:** `https://2ndreturn.github.io/GammaKnifeSIM/`
-- **QR Code:** Open the live link in Google Chrome, right-click the page (or use the address bar share menu), select **Create QR code for this page**, and scan it with your phone camera to play on mobile.
 
-## How to Play
 1. **Select Beam Count (1–201):** Adjust the slider to choose how many Cobalt-60 beams converge on the tumor. More beams speed up treatment and reduce damage to surrounding healthy brain tissue.
 2. **Hold to Fire:** Press and hold **FIRE** (or hold **Spacebar** on desktop) to deliver radiation and shrink the tumor.
 3. **Protect Brain Health:** Fewer beams require longer exposure times, and dropping below **192 beams** causes brain health to decline much faster.
