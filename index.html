@@ -438,6 +438,9 @@
             font-weight: 700;
             font-variant-numeric: tabular-nums;
         }
+        .dosimetry-val.off-target {
+            color: #ef4444;
+        }
         .message-box {
             background: #0f1420;
             border-left: 5px solid #ffd700;
@@ -634,12 +637,12 @@
 
                         <!-- Movable Isocenter Reticle -->
                         <g id="aimReticle" transform="translate(380, 265)">
-                            <circle cx="0" cy="0" r="21" fill="rgba(0, 212, 255, 0.12)" stroke="#00d4ff" stroke-width="2.2" stroke-dasharray="5 3" />
-                            <line x1="-27" y1="0" x2="-13" y2="0" stroke="#00d4ff" stroke-width="2.2" />
-                            <line x1="13" y1="0" x2="27" y2="0" stroke="#00d4ff" stroke-width="2.2" />
-                            <line x1="0" y1="-27" x2="0" y2="-13" stroke="#00d4ff" stroke-width="2.2" />
-                            <line x1="0" y1="13" x2="0" y2="27" stroke="#00d4ff" stroke-width="2.2" />
-                            <circle cx="0" cy="0" r="2" fill="#ffffff" />
+                            <circle id="reticleRing" cx="0" cy="0" r="21" fill="rgba(0, 212, 255, 0.12)" stroke="#00d4ff" stroke-width="2.2" stroke-dasharray="5 3" />
+                            <line id="reticleLineLeft" x1="-27" y1="0" x2="-13" y2="0" stroke="#00d4ff" stroke-width="2.2" />
+                            <line id="reticleLineRight" x1="13" y1="0" x2="27" y2="0" stroke="#00d4ff" stroke-width="2.2" />
+                            <line id="reticleLineTop" x1="0" y1="-27" x2="0" y2="-13" stroke="#00d4ff" stroke-width="2.2" />
+                            <line id="reticleLineBottom" x1="0" y1="13" x2="0" y2="27" stroke="#00d4ff" stroke-width="2.2" />
+                            <circle id="reticleCenterDot" cx="0" cy="0" r="2" fill="#ffffff" />
                         </g>
 
                         <g id="particlesLayer"></g>
@@ -782,6 +785,12 @@
             const tumorCenterDot = document.getElementById('tumorCenterDot');
             const tumorLabel = document.getElementById('tumorLabel');
             const aimReticle = document.getElementById('aimReticle');
+            const reticleRing = document.getElementById('reticleRing');
+            const reticleLineLeft = document.getElementById('reticleLineLeft');
+            const reticleLineRight = document.getElementById('reticleLineRight');
+            const reticleLineTop = document.getElementById('reticleLineTop');
+            const reticleLineBottom = document.getElementById('reticleLineBottom');
+            const reticleCenterDot = document.getElementById('reticleCenterDot');
             const svgPhaseBanner = document.getElementById('svgPhaseBanner');
             const svgFiringHud = document.getElementById('svgFiringHud');
             const stepBadge = document.getElementById('stepBadge');
@@ -792,7 +801,6 @@
             const MAX_WIN_BEAMS = 201;
             const PRECISION_LIMIT_PX = 2;
             const TARGET_DOSE_GY = 25.0;
-            // Generous landing tolerance around 25.0 Gy so careful release anywhere between 192–201 beams locks a clean 25.0 Gy
             const DOSE_TOLERANCE_GY = 0.6;
 
             const SKIN_TONES = [
@@ -1096,7 +1104,14 @@
                 fireBtn.textContent = '🔥 Firing...';
                 fireBtn.style.background = 'linear-gradient(135deg, #ff4444 0%, #cc0000 100%)';
                 fireBtn.style.color = '#fff';
+
+                // If locked off-target by > 2 px, holding Fire immediately zeroes healthy brain health
+                if (!isCenteredWithinLimit()) {
+                    brainHealth = 0;
+                }
+
                 updateUI();
+                renderScene();
                 gameLoop();
             }
 
@@ -1108,12 +1123,9 @@
                 fireBtn.style.color = '#000';
                 if (animationId) cancelAnimationFrame(animationId);
 
-                // If using any valid beam count (192-201) and stopped carefully right around 25.0 Gy, snap cleanly to 25.0 Gy
-                if (isBeamCountInWinRange() && Math.abs(deliveredDoseGy - TARGET_DOSE_GY) <= DOSE_TOLERANCE_GY) {
+                if (isCenteredWithinLimit() && isBeamCountInWinRange() && Math.abs(deliveredDoseGy - TARGET_DOSE_GY) <= DOSE_TOLERANCE_GY) {
                     deliveredDoseGy = TARGET_DOSE_GY;
-                    if (isCenteredWithinLimit()) {
-                        expansionRisk = 0;
-                    }
+                    expansionRisk = 0;
                 }
 
                 updateUI();
@@ -1145,7 +1157,9 @@
                     brainHealth = 0;
                     loseGame(
                         'His brain is cooked.',
-                        'Healthy brain tissue was overwhelmed after ' + fireTime.toFixed(1) + 's with ' + beamCount + ' beam' + (beamCount === 1 ? '' : 's') + '.'
+                        offset > PRECISION_LIMIT_PX
+                            ? 'Fired off-target (' + offset.toFixed(1) + ' px > ' + PRECISION_LIMIT_PX + ' px limit), instantly destroying healthy brain tissue.'
+                            : 'Healthy brain tissue was overwhelmed after ' + fireTime.toFixed(1) + 's with ' + beamCount + ' beam' + (beamCount === 1 ? '' : 's') + '.'
                     );
                     return;
                 }
@@ -1203,8 +1217,6 @@
                 const dt = 0.016;
                 fireTime += dt;
 
-                // Any beam count in 192–201 delivers a steady, controllable 5.0 Gy/s (exact 25.0 Gy at 5.0s)
-                // Outside 192–201, dose rate scales proportionally with beamCount / 196.5
                 const midpointWinBeams = (MIN_WIN_BEAMS + MAX_WIN_BEAMS) / 2;
                 const doseRateGyPerSec = isBeamCountInWinRange()
                     ? 5.0
@@ -1212,14 +1224,15 @@
 
                 deliveredDoseGy += doseRateGyPerSec * dt;
 
-                if (isCenteredWithinLimit() && beamCount > 0 && expansionRisk > 0) {
-                    const progressRatio = Math.min(1, deliveredDoseGy / TARGET_DOSE_GY);
-                    expansionRisk = Math.max(0, 100 * (1 - progressRatio));
-                }
+                if (!isCenteredWithinLimit()) {
+                    brainHealth = 0;
+                } else if (beamCount > 0) {
+                    if (expansionRisk > 0) {
+                        const progressRatio = Math.min(1, deliveredDoseGy / TARGET_DOSE_GY);
+                        expansionRisk = Math.max(0, 100 * (1 - progressRatio));
+                    }
 
-                if (beamCount > 0) {
                     if (isBeamCountInWinRange()) {
-                        // Healthy brain stays 100% safe inside 192–201 beams up to the 25.0 Gy target; only drains if over-treating past 25.0 Gy
                         if (deliveredDoseGy > TARGET_DOSE_GY + DOSE_TOLERANCE_GY) {
                             brainHealth = Math.max(0, brainHealth - 6.5 * dt);
                         }
@@ -1232,7 +1245,7 @@
                 }
 
                 if (beamCount > 0 && Math.random() < 0.45) {
-                    createParticle(aimX, aimY, isCenteredWithinLimit() ? '#38bdf8' : '#f59e0b');
+                    createParticle(aimX, aimY, isCenteredWithinLimit() ? '#38bdf8' : '#ef4444');
                 }
 
                 updateUI();
@@ -1281,6 +1294,7 @@
                 const strokeOpacity = stage === 'aim' ? '0.2' : (isFiring ? '0.8' : '0.32');
                 const strokeWidth = isFiring ? '2.0' : '1.15';
                 const dotRadius = isFiring ? '4.2' : '3.2';
+                const offTarget = !isCenteredWithinLimit();
 
                 for (let i = 0; i < visualBeams; i++) {
                     const angle = i * angleStep;
@@ -1292,7 +1306,12 @@
                     line.setAttribute('y1', sy);
                     line.setAttribute('x2', aimX.toFixed(1));
                     line.setAttribute('y2', aimY.toFixed(1));
-                    line.setAttribute('stroke', deliveredDoseGy > TARGET_DOSE_GY + DOSE_TOLERANCE_GY && isFiring ? '#f59e0b' : '#00d4ff');
+                    line.setAttribute(
+                        'stroke',
+                        offTarget
+                            ? '#ef4444'
+                            : (deliveredDoseGy > TARGET_DOSE_GY + DOSE_TOLERANCE_GY && isFiring ? '#f59e0b' : '#00d4ff')
+                    );
                     line.setAttribute('stroke-width', strokeWidth);
                     line.setAttribute('stroke-opacity', strokeOpacity);
                     beamsLayer.appendChild(line);
@@ -1317,6 +1336,18 @@
                 tumorLabel.setAttribute('y', (tumorY + 2.5).toFixed(1));
 
                 aimReticle.setAttribute('transform', `translate(${aimX.toFixed(1)}, ${aimY.toFixed(1)})`);
+
+                // Turn reticle red whenever off by more than 2 px (> 2)
+                const offTarget = !isCenteredWithinLimit();
+                const reticleStroke = offTarget ? '#ef4444' : '#00d4ff';
+                const reticleFill = offTarget ? 'rgba(239, 68, 68, 0.22)' : 'rgba(0, 212, 255, 0.12)';
+                reticleRing.setAttribute('stroke', reticleStroke);
+                reticleRing.setAttribute('fill', reticleFill);
+                reticleLineLeft.setAttribute('stroke', reticleStroke);
+                reticleLineRight.setAttribute('stroke', reticleStroke);
+                reticleLineTop.setAttribute('stroke', reticleStroke);
+                reticleLineBottom.setAttribute('stroke', reticleStroke);
+                reticleCenterDot.setAttribute('fill', offTarget ? '#ef4444' : '#ffffff');
 
                 const riskFactor = Math.max(0, expansionRisk / 100);
                 const coreR = 7.5 + riskFactor * 8;
@@ -1351,6 +1382,7 @@
                 const riskPct = Math.max(0, expansionRisk);
                 const brainPct = Math.max(0, brainHealth);
                 const offset = getOffsetPx();
+                const offTarget = !isCenteredWithinLimit();
 
                 document.getElementById('tumorHealthText').textContent = riskPct.toFixed(0) + '%';
                 document.getElementById('brainHealthText').textContent = brainPct.toFixed(0) + '%';
@@ -1358,7 +1390,10 @@
                 document.getElementById('brainBar').style.width = brainPct + '%';
                 document.getElementById('timeElapsed').textContent = fireTime.toFixed(1) + 's';
                 document.getElementById('doseReadout').textContent = deliveredDoseGy.toFixed(1) + ' / ' + TARGET_DOSE_GY.toFixed(1) + ' Gy';
-                document.getElementById('offsetReadout').textContent = offset.toFixed(1) + ' px (≤ ' + PRECISION_LIMIT_PX + ' px)';
+
+                const offsetReadoutEl = document.getElementById('offsetReadout');
+                offsetReadoutEl.textContent = offset.toFixed(1) + ' px (≤ ' + PRECISION_LIMIT_PX + ' px)';
+                offsetReadoutEl.classList.toggle('off-target', offTarget);
 
                 const tumorCard = document.getElementById('tumorCard');
                 const brainCard = document.getElementById('brainCard');
@@ -1369,11 +1404,15 @@
                 tumorCard.classList.remove('good');
                 brainCard.classList.remove('warning');
 
+                if (brainPct <= 0) {
+                    brainCard.classList.add('warning');
+                }
+
                 if (stage === 'aim') {
                     stepBadge.textContent = 'Step 1 — Align Isocenter Within ≤ 2 px';
-                    perfEl.textContent = 'AIM TARGET';
-                    statusCard.className = 'stat-card caution';
-                    msgBox.className = 'message-box info';
+                    perfEl.textContent = offTarget ? 'OFF TARGET' : 'ON TARGET';
+                    statusCard.className = offTarget ? 'stat-card warning' : 'stat-card good';
+                    msgBox.className = offTarget ? 'message-box error' : 'message-box info';
                     msgBox.innerHTML = '<strong>Step 1 (Isocenter Alignment):</strong> Move the isocenter within <strong>≤ 2.0 px</strong> of the lesion (current offset: <strong>' + offset.toFixed(1) + ' px</strong>), then click <strong>Lock Isocenter</strong>.';
                     return;
                 }
@@ -1381,15 +1420,19 @@
                 if (stage === 'firing') {
                     stepBadge.textContent = 'Step 2 & 3 — ' + beamCount + ' Beams (0–300) | Hold Fire & Click Done';
                     if (isFiring) {
-                        perfEl.textContent = 'IRRADIATING';
-                        statusCard.className = 'stat-card good';
-                        msgBox.className = 'message-box info';
-                        msgBox.innerHTML = '<strong>⚡ Delivering dose with ' + beamCount + ' beam' + (beamCount === 1 ? '' : 's') + ':</strong> Hold for as long as you judge necessary, then click <strong>Done</strong>.';
+                        perfEl.textContent = offTarget ? 'BRAIN COOKED' : 'IRRADIATING';
+                        statusCard.className = offTarget ? 'stat-card warning' : 'stat-card good';
+                        msgBox.className = offTarget ? 'message-box error' : 'message-box info';
+                        msgBox.innerHTML = offTarget
+                            ? '<strong>⚠️ Off-target radiation (&gt; 2.0 px):</strong> Healthy brain health dropped to <strong>0%</strong>. Click <strong>Done</strong> to end the case.'
+                            : '<strong>⚡ Delivering dose with ' + beamCount + ' beam' + (beamCount === 1 ? '' : 's') + ':</strong> Hold for as long as you judge necessary, then click <strong>Done</strong>.';
                     } else {
-                        perfEl.textContent = beamCount + ' BEAM' + (beamCount === 1 ? '' : 'S');
-                        statusCard.className = 'stat-card';
-                        msgBox.className = 'message-box info';
-                        msgBox.innerHTML = '<strong>Ready:</strong> ' + beamCount + ' beam' + (beamCount === 1 ? '' : 's') + ' selected. Hold <strong>Fire</strong> as long as you think is needed, then click <strong>Done</strong>.';
+                        perfEl.textContent = brainPct <= 0 ? 'BRAIN COOKED' : (beamCount + ' BEAM' + (beamCount === 1 ? '' : 'S'));
+                        statusCard.className = brainPct <= 0 ? 'stat-card warning' : 'stat-card';
+                        msgBox.className = brainPct <= 0 ? 'message-box error' : 'message-box info';
+                        msgBox.innerHTML = brainPct <= 0
+                            ? '<strong>💀 Healthy brain health is 0%:</strong> Click <strong>Done</strong> to evaluate or <strong>Reset</strong>.'
+                            : '<strong>Ready:</strong> ' + beamCount + ' beam' + (beamCount === 1 ? '' : 's') + ' selected. Hold <strong>Fire</strong> as long as you think is needed, then click <strong>Done</strong>.';
                     }
                     return;
                 }
